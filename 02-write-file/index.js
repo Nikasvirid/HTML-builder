@@ -17,7 +17,7 @@ stdin.on('data', data => {
     process.stdin.pipe(writeableStream);
     
   });
-    
+  process.exit();
    
   
   
