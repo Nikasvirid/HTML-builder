@@ -1,3 +1,6 @@
 const fs = require ('fs');
-const readableStream = fs.createReadStream('./01-read-file/text.txt','utf-8');
-readableStream.on('data', chunk => console.log(chunk));
+let readableStream = fs.createReadStream('./01-read-file/text.txt', 'utf8');
+readableStream.on('data',function(chunk)
+{
+  console.log(chunk);
+});
