@@ -1,24 +1,32 @@
 const { readdir } = require('fs/promises');
 const fs = require('fs');
 const path = require('path');
-const readline = require('readline/promises');
 const { writeFile } = require('fs/promises');
 const { readFile } = require('fs/promises');
+const { rm } = require('fs/promises');
 
-async function readTemplate() {
-  const data = await readFile(path.join(__dirname, 'template.html'), 'utf-8');
-  const template = data;
-  createTemplate(template);
+async function removeFolder() {
+  try {
+    await rm(path.join(__dirname, 'project-dist'), { recursive: true }, (err) => {
+      if (err) throw err;
+    });
+  } catch (err) {
+    //console.log(err) error
+  }
+  makeDir(__dirname, 'project-dist');
+  makeDir(path.join(__dirname, 'project-dist'), 'assets');
+  readTemplate();
+  copyFiles(__dirname, path.join(__dirname, 'project-dist'), 'assets');
+  bundleFiles();
+
 }
-
 async function makeDir(pathFolder, dir) {
   try {
     await fs.promises.mkdir(path.join(pathFolder, dir), true);
   } catch (err) {
-    console.log(err);
+    //console.log('Error:', err) error
   }
 }
-
 async function createTemplate(template) {
   try {
     let arrTemplate = [];
@@ -36,7 +44,7 @@ async function createTemplate(template) {
       });
     }
   } catch (err) {
-    console.log('Ошибка: ', err);
+    console.log('Error: ', err);
   }
 }
 async function copyFile(pathSrc, pathDest, file) {
@@ -46,7 +54,6 @@ async function copyFile(pathSrc, pathDest, file) {
     console.log(err);
   }
 }
-
 async function copyFiles(pathSrc, pathDest, dir) {
   makeDir(pathDest, dir);
   try {
@@ -63,7 +70,7 @@ async function copyFiles(pathSrc, pathDest, dir) {
 
     }
   } catch (err) {
-    console.log(' Stop!! Что-то не то с файлами!');
+    console.log('Возможно это ошибка!');
   }
 }
 async function bundleFiles() {
@@ -90,11 +97,24 @@ async function bundleFiles() {
     console.log(err);
   }
 }
-fs.open(path.join(__dirname, 'project-dist', 'style.css'), 'w', (err) => {
-  if (err) throw err;
-});
-makeDir(__dirname, 'project-dist');
-readTemplate();
-makeDir(path.join(__dirname, 'project-dist'), 'assets');
-copyFiles(__dirname, path.join(__dirname, 'project-dist'), 'assets');
-bundleFiles();
+async function readTemplate() {
+  const data = await readFile(path.join(__dirname, 'template.html'), 'utf-8');
+  const template = data;
+  createTemplate(template);
+}
+function buildPage() {
+  fs.access(path.join(__dirname, 'project-dist'), function (err) {
+    if (err && err.code === 'ENOENT') {
+      makeDir(__dirname, 'project-dist');
+      makeDir(path.join(__dirname, 'project-dist'), 'assets');
+      readTemplate();
+      copyFiles(__dirname, path.join(__dirname, 'project-dist'), 'assets');
+      bundleFiles();
+
+    } else {
+      removeFolder();
+    }
+  });
+}
+
+buildPage();
