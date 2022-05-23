@@ -1,33 +1,37 @@
 const fs = require('fs');
-const promises = fs.promises;
 const path = require('path');
-
-const srcPath = join(__dirname, 'styles\\');
-const destPath = join(__dirname, 'project-dist');
-
-const writeStream = createWriteStream(join(destPath, 'bundle.css'));
-
-let stylesArr = [];
-
-function bundleCSS(styles) {
-
-  writeStream.write(styles, 'utf-8');
-  writeStream.end();
-}
-
-async function getStyles(src) {
-  const srcFiles = await promises.readdir(src);
-
-  for (const file of srcFiles) {
-    if (parse(src + file).ext == '.css') {
+const fsPromises = require('fs/promises');
+async function makeBundle() {
+  const pathToStylesFolder = path.join(__dirname, 'styles');
+  const pathToProjeсtDist = path.join(__dirname, 'project-dist');
+  let readableStream;
+  let writeableStream = fs.createWriteStream(
+    path.join(pathToProjeсtDist, 'bundle.css'),
+    { flags: 'a' }
+  );
+  fs.writeFile(path.join(pathToProjeсtDist, 'bundle.css'), '', (err) => {
+    if (err) throw err;
+    // console.log('Файл создан');
+  });
+  // Чтениe папки styles:
+  await fsPromises.readdir(pathToStylesFolder).then((files) => {
+    //  является ли объект файлом 
+    for (let i = 0; i < files.length; i++) {
+      let pathToFile = path.join(pathToStylesFolder, files[i]);
+      let fileType = path.extname(files[i]).slice(1);
+      if (fileType === 'css') {
+        fs.stat(pathToFile, (err, stats) => {
+          if (err) throw err;
+          if (stats.isFile()) {
             
-      const stylesFileRead = await promises.readFile(src + file, 'utf-8');
-
-      stylesArr.push(stylesFileRead);
+            
+            
+            readableStream = fs.createReadStream(pathToFile, 'utf-8');
+            readableStream.pipe(writeableStream);
+          }
+        });
+      }
     }
-  }
-
-  bundleCSS(stylesArr.join(''));
+  });
 }
-
-getStyles(srcPath);
+makeBundle();
