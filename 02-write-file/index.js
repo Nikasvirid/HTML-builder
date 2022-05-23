@@ -12,7 +12,7 @@ stdin.on('data', data => {
     
 });
 
-process.on('exit', () => stdout.write('Удачи! \n'));
+process.on('exit', () => stdout.write('ПРОВЕРЬ СВОЙ SCORE!Пока! \n'));
 process.on('SIGINT', ()=>{
   process.exit();
 });
