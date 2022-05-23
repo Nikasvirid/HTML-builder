@@ -1,37 +1,54 @@
 const fs = require('fs');
+const fsPromises = fs.promises;
 const path = require('path');
-const fsPromises = require('fs/promises');
-async function makeBundle() {
-  const pathToStylesFolder = path.join(__dirname, 'styles');
-  const pathToProjeсtDist = path.join(__dirname, 'project-dist');
-  let readableStream;
-  let writeableStream = fs.createWriteStream(
-    path.join(pathToProjeсtDist, 'bundle.css'),
-    { flags: 'a' }
-  );
-  fs.writeFile(path.join(pathToProjeсtDist, 'bundle.css'), '', (err) => {
-    if (err) throw err;
-    // console.log('Файл создан');
-  });
-  // Чтениe папки styles:
-  await fsPromises.readdir(pathToStylesFolder).then((files) => {
-    //  является ли объект файлом 
-    for (let i = 0; i < files.length; i++) {
-      let pathToFile = path.join(pathToStylesFolder, files[i]);
-      let fileType = path.extname(files[i]).slice(1);
-      if (fileType === 'css') {
-        fs.stat(pathToFile, (err, stats) => {
-          if (err) throw err;
-          if (stats.isFile()) {
-            
-            
-            
-            readableStream = fs.createReadStream(pathToFile, 'utf-8');
-            readableStream.pipe(writeableStream);
-          }
+
+const dirStylesName = path.join(__dirname, 'styles');
+const bundleName = path.join(__dirname, 'project-dist', 'bundle.css');
+
+async function removeBundle(bundleName) {
+  try {
+    await fsPromises.fs(bundleName, {force: true, recursive: true}); 
+    return;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+const writeText = async(txt) => {
+  const w = fs.createWriteStream(bundleName, { flags: 'a+' });
+  w.write(txt);
+  return;
+};
+
+const makeStyles = async() => {
+  try {
+    const files = await fsPromises.readdir(dirStylesName, { withFileTypes: true });
+    for (const file of files) {
+      const fileString = path.join(dirStylesName, file.name);
+      if (file.isFile()&&path.extname(fileString)==='.css')
+      {
+        const textFile = await new Promise((resolve, reject) => {
+          const r = fs.createReadStream(fileString);
+          let text = '';  
+          r.on('data', (chunk) => (text = text + chunk));
+          r.on('end', () => {
+            resolve(text);
+          });
+          r.on('error', reject);
         });
+
+        await writeText(`${textFile}\n\n`);
       }
     }
-  });
-}
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+
+const makeBundle = async() => {
+  await removeBundle(bundleName);
+  await makeStyles();
+};
+
 makeBundle();
