@@ -1,29 +1,19 @@
-//console.log ('привет,Креветка!');
-//const { stdin, stdout } = process;
-//stdin.on('data', data => stdout.write(data));
-//const fs = require('fs');
-//let writeableStream = fs.createWriteStream('./02-write-file/hello.txt','utf-8');
-//writeableStream.write('');
-const fs =  require('fs');
-const { stdin, stdout } = process;
+const {stdin, stdout} = process;
+const fs = require('fs');
+const path = require('path');
+const streamWrite = fs.createWriteStream(path.join(__dirname, 'hello.txt'));
 stdout.write('Привет,креветка!\n');
 stdin.on('data', data => {
-  stdout.write('Ну напиши хоть что-то!\n');
-  stdin.on('data',data =>{
-    console.log(data);
- 
-    let writeableStream = fs.createWriteStream('./02-write-file/hello.txt','utf-8'); 
-    writeableStream.write('privet');
-    process.stdin.pipe(writeableStream);
+  if(data.toString().trim() === 'exit'){
+    process.exit();
+  }else {
+    streamWrite.write(data);
+  }
     
-  });
+});
+
+process.on('exit', () => stdout.write('Удачи! \n'));
+process.on('SIGINT', ()=>{
   process.exit();
-   
-  
-  
-   
-
-});    
-process.on('exit', () => stdout.write('Удачи!'));
-
+});
 
