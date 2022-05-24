@@ -20,7 +20,7 @@ const path = require('path');
 
 async function getFiles() {
   try {
-    const files = await readdir(path.join('./03-files-in-folder/ secret-folder'), 'utf8', true);
+    const files = await readdir(path.join('./03-files-in-folder/secret-folder'), 'utf8', true);
     for (const file of files) {
       const extname = path.parse(file);
       fs.stat(path.join('./03-files-in-folder/secret-folder', file), (err, stats) => {
